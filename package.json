@@ -1,0 +1,20 @@
+{
+  "name": "bo-cms",
+  "version": "1.0.0",
+  "description": "Bombay optic CMS",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "rahul-parmar",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "express-async-errors": "^3.1.1",
+    "mongodb": "^5.7.0",
+    "nodemon": "^3.0.1"
+  }
+}
