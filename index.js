@@ -7,6 +7,8 @@ const bodyParser = require("body-parser");
 const tests = require("./routes/test.js");
 const login = require("./routes/login.js");
 const customer = require("./routes/customer.js");
+const order = require("./routes/order.js");
+const dashboard = require("./routes/dashboard.js");
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -23,6 +25,9 @@ app.use("/login", login);
 
 app.use("/customer", customer);
 
+app.use("/order", order);
+
+app.use("/dashboard", dashboard);
 // Global error handling
 // app.use((err, _req, res, next) => {
 //  res.status(500).send("Uh oh! An unexpected error occured.")

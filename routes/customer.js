@@ -11,7 +11,7 @@ router.get("/", async (req, res) => {
   results = results.filter((element) => {
     return element.name.toLowerCase().includes(words) || element.no.includes(words);
   })
-  res.send(results).status(200);
+  res.send(results.reverse()).status(200);
 });
 
 router.post("/", async (req, res) => {
