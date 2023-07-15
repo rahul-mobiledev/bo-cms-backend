@@ -56,6 +56,9 @@ router.get("/collected", async (req, res) => {
   let results = await collection.find({}).toArray();
   let data = results.filter((e)=>{
     let currentStatus = e.statusHistory[e.statusHistory.length -1];
+    if(time === ""){
+      return currentStatus.status === "collected";
+    }
     return currentStatus.status === "collected" && datesAreOnSameDay(new Date(time),new Date(currentStatus.time));
   })
   res.send(data.reverse()).status(200);
