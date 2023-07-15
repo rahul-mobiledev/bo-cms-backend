@@ -14,6 +14,15 @@ router.get("/", async (req, res) => {
   res.send(results.reverse()).status(200);
 });
 
+router.get("/id", async (req, res) => {
+  let id = req.query.id.toLowerCase();
+  let collection = db(req).collection("customer");
+  let results = await collection.findOne({
+    _id : id
+  });
+  res.send(results).status(200);
+});
+
 router.post("/", async (req, res) => {
   let customer = req.body;
   let collection = db(req).collection("customer");
