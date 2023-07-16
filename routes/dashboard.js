@@ -80,6 +80,8 @@ function getMonthCollectionDaily(orders,date){
       dayMonth : e.getDate(),
       amount : getCollection(orders,e,false)
     }
+  }).filter((e)=>{
+    return e.amount !== 0;
   })
 }
 
@@ -89,6 +91,8 @@ function getYearCollectionMonthly(orders,date){
       dayMonth : e.getMonth()+1,
       amount : getCollection(orders,e,true)
     }
+  }).filter((e)=>{
+    return e.amount !== 0;
   })
 }
 
