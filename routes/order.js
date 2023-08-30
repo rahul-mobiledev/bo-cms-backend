@@ -1,6 +1,6 @@
 const express = require("express");
 const { db } = require("../db/conn.js");
-const {datesAreOnSameDay} = require("../utils/time.js");
+const { datesAreOnSameDay } = require("../utils/time.js");
 
 const router = express.Router();
 
@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
   let customerId = req.query.customerId;
   let collection = db(req).collection("order");
   let results = await collection.find({
-    customerId : customerId
+    customerId: customerId
   }).toArray();
   res.send(results.reverse()).status(200);
 });
@@ -34,19 +34,35 @@ router.put("/", async (req, res) => {
 
 router.get("/active", async (req, res) => {
   let collection = db(req).collection("order");
-  let results = await collection.find({}).toArray();
-  let data = results.filter((e)=>{
-    return e.statusHistory[e.statusHistory.length -1].status === "active";
-  })
+  let data = await collection.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: [
+            { $arrayElemAt: ["$statusHistory.status", -1] },
+            "active"
+          ]
+        }
+      }
+    }
+  ]).toArray();
   res.send(data.reverse()).status(200);
 });
 
 router.get("/completed", async (req, res) => {
   let collection = db(req).collection("order");
-  let results = await collection.find({}).toArray();
-  let data = results.filter((e)=>{
-    return e.statusHistory[e.statusHistory.length -1].status === "completed";
-  })
+  let data = await collection.aggregate([
+    {
+      $match: {
+        $expr: {
+          $eq: [
+            { $arrayElemAt: ["$statusHistory.status", -1] },
+            "completed"
+          ]
+        }
+      }
+    }
+  ]).toArray();
   res.send(data.reverse()).status(200);
 });
 
@@ -69,12 +85,12 @@ router.post("/moveToCompleted", async (req, res) => {
   let time = req.query.time;
   let collection = db(req).collection("order");
   let results = await collection.updateOne({
-    _id : orderId
-  },{
-    $addToSet:{
-      "statusHistory" : {
-        "time" : time,
-        "status" : "completed"
+    _id: orderId
+  }, {
+    $addToSet: {
+      "statusHistory": {
+        "time": time,
+        "status": "completed"
       }
     }
   });
@@ -87,14 +103,14 @@ router.post("/moveToCollected", async (req, res) => {
   let payment = req.body;
   let collection = db(req).collection("order");
   let results = await collection.updateOne({
-    _id : orderId
-  },{
-    $addToSet:{
-      "statusHistory" : {
-        "time" : payment.time,
-        "status" : "collected"
+    _id: orderId
+  }, {
+    $addToSet: {
+      "statusHistory": {
+        "time": payment.time,
+        "status": "collected"
       },
-      "payments" : payment
+      "payments": payment
     },
   });
   res.send(results).status(200);
