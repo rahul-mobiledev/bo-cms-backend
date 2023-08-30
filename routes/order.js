@@ -68,16 +68,48 @@ router.get("/completed", async (req, res) => {
 
 router.get("/collected", async (req, res) => {
   let time = req.query.time;
+  time = time.substring(0, time.indexOf("T"))
   let collection = db(req).collection("order");
-  let results = await collection.find({}).toArray();
-  let data = results.filter((e)=>{
-    let currentStatus = e.statusHistory[e.statusHistory.length -1];
-    if(time === ""){
-      return currentStatus.status === "collected";
-    }
-    return currentStatus.status === "collected" && datesAreOnSameDay(new Date(time),new Date(currentStatus.time));
-  })
-  res.send(data.reverse()).status(200);
+  if (time === "") {
+    let data = await collection.find({
+      "statusHistory":{
+        $elemMatch : {
+          "status" : "collected"
+        }
+      }
+    }).toArray();
+    res.send(data.reverse()).status(200)
+  }
+  else {
+    let data = await collection.aggregate([
+      {
+        $match: {
+          $expr: {
+            $and: [
+              {
+                $eq: [
+                  { $arrayElemAt: ["$statusHistory.status", -1] },
+                  "collected"
+                ]
+              },
+              {
+                $eq: [
+                  {
+                    $substr: [
+                      { $toString: { $arrayElemAt: ["$statusHistory.time", -1] } }, 0, 10
+                    ]
+
+                  },
+                  time
+                ]
+              }
+            ]
+          }
+        }
+      }
+    ]).toArray()
+    res.send(data.reverse()).status(200);
+  }
 });
 
 router.post("/moveToCompleted", async (req, res) => {

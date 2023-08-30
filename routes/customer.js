@@ -6,23 +6,23 @@ const router = express.Router();
 // Get a list of 50 posts
 router.get("/", async (req, res) => {
   let words = req.query.search.toLowerCase();
-  let regexText = new RegExp(words);
   let collection = db(req).collection("customer");
   let results = await collection.find({
     $or : [
       {
         no : {
-          $regex : regexText
+          $regex : words,
+          $options : "i"
         }
       },
       {
         name : {
-          $regex : regexText
+          $regex : words,
+          $options : "i"
         }
       }
     ]
   }).toArray();
-
   res.send(results.reverse()).status(200);
 });
 
