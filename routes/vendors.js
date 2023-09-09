@@ -73,7 +73,8 @@ router.post("/addPayment", async (req, res) => {
         "purchases.$.payments" : payment
       },
     $inc : {
-      due : -payment.amount
+      due : -payment.amount,
+      "purchases.$.due" : -payment.amount
     }
   });
   res.send(results).status(200);
@@ -99,9 +100,10 @@ function getYearlyPayments(vendors,date){
       dayMonth : e.getMonth()+1,
       amount : getPayments(vendors,e,true)
     }
-  }).filter((e)=>{
-    return e.amount !== 0;
   })
+  // .filter((e)=>{
+  //   return e.amount !== 0;
+  // })
 }
 
 function getCredits(vendors,date,isMonthDate){
@@ -122,9 +124,10 @@ function getYearlyCredits(vendors,date){
       dayMonth : e.getMonth()+1,
       amount : getCredits(vendors,e,true)
     }
-  }).filter((e)=>{
-    return e.amount !== 0;
   })
+  // .filter((e)=>{
+  //   return e.amount !== 0;
+  // })
 }
 
 module.exports = router;
