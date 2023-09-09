@@ -11,6 +11,7 @@ const order = require("./routes/order.js");
 const vendors = require("./routes/vendors.js");
 const dashboard = require("./routes/dashboard.js");
 const importJs = require("./routes/import.js");
+const reminders = require("./routes/reminders.js");
 
 const PORT = process.env.PORT || 5050;
 const app = express();
@@ -34,6 +35,8 @@ app.use("/vendors", vendors);
 app.use("/dashboard", dashboard);
 
 app.use("/import",importJs)
+
+app.use("/reminders",reminders);
 // Global error handling
 // app.use((err, _req, res, next) => {
 //  res.status(500).send("Uh oh! An unexpected error occured.")
