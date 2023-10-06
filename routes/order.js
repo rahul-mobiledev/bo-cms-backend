@@ -1,6 +1,8 @@
 const express = require("express");
 const { db } = require("../db/conn.js");
 const { datesAreOnSameDay } = require("../utils/time.js");
+const axios = require("axios")
+const FormData = require('form-data');
 
 const router = express.Router();
 
@@ -146,6 +148,22 @@ router.post("/moveToCollected", async (req, res) => {
     },
   });
   res.send(results).status(200);
+
+  // Justdial review text message
+  let collection2 = db(req).collection("order");
+  let order = await collection2.findOne({
+    _id : orderId
+  })
+  let collection3 = db(req).collection("customer");
+  let customer = await collection3.findOne({
+    _id: order.customerId
+  });
+  const apiUrl = 'https://www.justdial.com/rt-59CULZTCKFZ';
+  var bodyFormData = new FormData();
+  bodyFormData.append("name", customer.name)
+  bodyFormData.append("mobile", customer.no)
+  let resp = await axios.post(apiUrl,bodyFormData)
+  console.log(resp)
 });
 
 module.exports = router;
