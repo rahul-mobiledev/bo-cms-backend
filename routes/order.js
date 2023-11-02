@@ -70,6 +70,7 @@ router.get("/completed", async (req, res) => {
 
 router.get("/collected", async (req, res) => {
   let time = req.query.time;
+  let isMonthly = req.query.isMonthly;
   time = time.substring(0, time.indexOf("T"))
   let collection = db(req).collection("order");
   if (time === "") {
@@ -81,6 +82,52 @@ router.get("/collected", async (req, res) => {
       }
     }).toArray();
     res.send(data.reverse()).status(200)
+  }
+  else if(isMonthly==="true"){
+    let month = time.substring(0,time.length -3)
+    let data = await collection.aggregate([
+      {
+        $match: {
+          $expr: {
+            $and: [
+              {
+                $eq: [
+                  { $arrayElemAt: ["$statusHistory.status", -1] },
+                  "collected"
+                ]
+              },
+              {
+              $or: [
+                {
+                  $eq: [
+                    {
+                      $substr: [
+                        { $toString: { $arrayElemAt: ["$statusHistory.time", -1] } }, 0, 7
+                      ]
+  
+                    },
+                    month
+                  ]
+                },
+                {
+                  $eq: [
+                    {
+                      $substr: [
+                        { $toString: "$orderTime" }, 0, 7
+                      ]
+  
+                    },
+                    month
+                  ]
+                },
+              ]
+            }
+            ]
+          }
+        }
+      }
+    ]).toArray()
+    res.send(data).status(200);
   }
   else {
     let data = await collection.aggregate([
