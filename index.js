@@ -8,6 +8,7 @@ const tests = require("./routes/test.js");
 const login = require("./routes/login.js");
 const customer = require("./routes/customer.js");
 const order = require("./routes/order.js");
+const purchases = require("./routes/purchases.js");
 const vendors = require("./routes/vendors.js");
 const dashboard = require("./routes/dashboard.js");
 const importJs = require("./routes/import.js");
@@ -29,6 +30,8 @@ app.use("/login", login);
 app.use("/customer", customer);
 
 app.use("/order", order);
+
+app.use("/purchases", purchases);
 
 app.use("/vendors", vendors);
 

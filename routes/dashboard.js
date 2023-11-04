@@ -8,16 +8,19 @@ router.post("/", async (req, res) => {
   let request = req.body;
   let collection = db(req).collection("order");
   let orders = await collection.find({}).toArray();
+  let orderAmount = getOrdersAmount(orders,new Date(request.date));
+  let ordersTotal = getOrders(orders,new Date(request.date));
+  let collectionTotal = getCollection(orders,new Date(request.date));
   let response = {
     todayCollection : {
-      amount : getCollection(orders,new Date(request.date),false),
-      goal : 10000,
-      orders : getOrders(orders,new Date(request.date),false)
+      amountTotal : orderAmount.todayAmount,
+      amount : collectionTotal.collection,
+      orders : ordersTotal.totalOrder
     },
     monthCollection : {
-      amount : getCollection(orders,new Date(request.date),true),
-      goal : 250000,
-      orders : getOrders(orders,new Date(request.date),true)
+      amountTotal : orderAmount.monthlyAmount ,
+      amount : collectionTotal.collectionMonthly,
+      orders : ordersTotal.totalOrderMonthly
     },
     monthFilterCollection : getMonthCollectionDaily(orders,request.monthlyCollectionDate),
     yearFilterCollection : getYearCollectionMonthly(orders,request.yearlyCollectionDate)
@@ -25,60 +28,75 @@ router.post("/", async (req, res) => {
   res.send(response).status(200);
 });
 
-function getCollection(orders,date,isMonthDate){
+function getCollection(orders,date){
   let collection = 0;
+  let collectionMonthly = 0;
   orders.forEach(order => {
     order.payments.forEach(payment => {
-      let isTodayPayment;
-      if(isMonthDate){
-        isTodayPayment = datesAreOnSameMonth(date,new Date(payment.time));
+      if(datesAreOnSameMonth(date,new Date(payment.time))){
+        collectionMonthly+= payment.amount;
       }
-      else{
-        isTodayPayment = datesAreOnSameDay(date,new Date(payment.time));
-      }
-      
-      if(isTodayPayment){
-        collection += payment.amount;
+      if(datesAreOnSameDay(date,new Date(payment.time))){
+        collection+= payment.amount;
       }
     })
   });
-  return collection;
+  return {
+    collection : collection,
+    collectionMonthly : collectionMonthly
+  };
 }
 
-function getOrders(orders,date,isMonthDate){
+function getOrders(orders,date){
   let totalOrder = 0;
+  let totalOrderMonthly = 0;
   orders.forEach(order => {
-    let isTodayOrder = true;
     let currentIndex = order.statusHistory.length
     while(currentIndex > 0){
       let status = order.statusHistory[currentIndex-1];
-      let matched;
-      if(isMonthDate){
-        matched = datesAreOnSameMonth(date,new Date(status.time))
+      let matched = false;
+      if(datesAreOnSameMonth(date,new Date(status.time))){
+        totalOrderMonthly++;
+        matched = true;
       }
-      else{
-        matched = datesAreOnSameDay(date,new Date(status.time))
+      if(datesAreOnSameDay(date,new Date(status.time))){
+       totalOrder++;
+       matched = true;
       }
+      currentIndex--;
       if(matched){
-        currentIndex--;
-      }
-      else{
-        isTodayOrder = false;
         break;
       }
     }
-    if(isTodayOrder){
-      totalOrder++;
-    }
   });
-  return totalOrder;
+  return {
+    totalOrder : totalOrder,
+    totalOrderMonthly : totalOrderMonthly
+  };
+}
+
+function getOrdersAmount(orders,date){
+  let amountDaily = 0;
+  let amountMonthly = 0;
+  orders.forEach(order => {
+    if(datesAreOnSameMonth(date,new Date(order.orderTime))){
+      amountMonthly+=order.orderSummery.total;
+    }
+    if(datesAreOnSameDay(date,new Date(order.orderTime))){
+      amountDaily+=order.orderSummery.total;
+    }
+  })
+  return {
+    todayAmount : amountDaily,
+    monthlyAmount : amountMonthly
+  };
 }
 
 function getMonthCollectionDaily(orders,date){
   return getDaysInMonth(new Date(date).getMonth() , new Date(date).getFullYear()).map((e)=>{
     return {
       dayMonth : e.getDate(),
-      amount : getCollection(orders,e,false)
+      amount : getOrdersAmount(orders,e).todayAmount
     }
   }).filter((e)=>{
     return e.amount !== 0;
@@ -89,7 +107,7 @@ function getYearCollectionMonthly(orders,date){
   return getMonthInYear(new Date(date).getFullYear()).map((e)=>{
     return {
       dayMonth : e.getMonth()+1,
-      amount : getCollection(orders,e,true)
+      amount : getOrdersAmount(orders,e).monthlyAmount
     }
   }).filter((e)=>{
     return e.amount !== 0;
