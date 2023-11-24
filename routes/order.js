@@ -1,8 +1,6 @@
 const express = require("express");
 const { db } = require("../db/conn.js");
 const { datesAreOnSameDay } = require("../utils/time.js");
-const axios = require("axios")
-const FormData = require('form-data');
 
 const router = express.Router();
 
@@ -75,16 +73,16 @@ router.get("/collected", async (req, res) => {
   let collection = db(req).collection("order");
   if (time === "") {
     let data = await collection.find({
-      "statusHistory":{
-        $elemMatch : {
-          "status" : "collected"
+      "statusHistory": {
+        $elemMatch: {
+          "status": "collected"
         }
       }
     }).toArray();
     res.send(data.reverse()).status(200)
   }
-  else if(isMonthly==="true"){
-    let month = time.substring(0,time.length -3)
+  else if (isMonthly === "true") {
+    let month = time.substring(0, time.length - 3)
     let data = await collection.aggregate([
       {
         $match: {
@@ -97,31 +95,31 @@ router.get("/collected", async (req, res) => {
                 ]
               },
               {
-              $or: [
-                {
-                  $eq: [
-                    {
-                      $substr: [
-                        { $toString: { $arrayElemAt: ["$statusHistory.time", -1] } }, 0, 7
-                      ]
-  
-                    },
-                    month
-                  ]
-                },
-                {
-                  $eq: [
-                    {
-                      $substr: [
-                        { $toString: "$orderTime" }, 0, 7
-                      ]
-  
-                    },
-                    month
-                  ]
-                },
-              ]
-            }
+                $or: [
+                  {
+                    $eq: [
+                      {
+                        $substr: [
+                          { $toString: { $arrayElemAt: ["$statusHistory.time", -1] } }, 0, 7
+                        ]
+
+                      },
+                      month
+                    ]
+                  },
+                  {
+                    $eq: [
+                      {
+                        $substr: [
+                          { $toString: "$orderTime" }, 0, 7
+                        ]
+
+                      },
+                      month
+                    ]
+                  },
+                ]
+              }
             ]
           }
         }
@@ -195,22 +193,6 @@ router.post("/moveToCollected", async (req, res) => {
     },
   });
   res.send(results).status(200);
-
-  // Justdial review text message
-  let collection2 = db(req).collection("order");
-  let order = await collection2.findOne({
-    _id : orderId
-  })
-  let collection3 = db(req).collection("customer");
-  let customer = await collection3.findOne({
-    _id: order.customerId
-  });
-  const apiUrl = 'https://www.justdial.com/rt-59CULZTCKFZ';
-  var bodyFormData = new FormData();
-  bodyFormData.append("name", customer.name)
-  bodyFormData.append("mobile", customer.no)
-  let resp = await axios.post(apiUrl,bodyFormData)
-  console.log(resp)
 });
 
 module.exports = router;

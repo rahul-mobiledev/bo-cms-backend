@@ -9,7 +9,6 @@
   "author": "rahul-parmar",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.5.1",
     "body-parser": "^1.20.2",
     "convert-excel-to-json": "^1.7.0",
     "cors": "^2.8.5",
