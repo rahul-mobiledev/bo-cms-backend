@@ -3,6 +3,7 @@ require("./loadEnvironment.js")
 const cors = require("cors");
 const asyncErrors = require("express-async-errors");
 const bodyParser = require("body-parser");
+const jwtMiddleWare = require("./auth/jwt.js")
 
 const tests = require("./routes/test.js");
 const login = require("./routes/login.js");
@@ -21,11 +22,12 @@ app.use(cors());
 app.use(bodyParser.json())
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
 // Load the /posts routes
 app.use("/test", tests);
 
 app.use("/login", login);
+
+app.use(jwtMiddleWare.jwtMiddleWare)
 
 app.use("/customer", customer);
 

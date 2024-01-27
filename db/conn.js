@@ -13,11 +13,12 @@ async function run() {
 
 const db = function (req) {
 
+  let dbRole = req.user.role
   try {
-    if (req.get("key") === process.env.KEY) {
+    if (dbRole === "production") {
       return client.db("production");
     }
-    else if(req.get("key") === process.env.TESTKEY){
+    else if(dbRole === "develop"){
       return client.db("testMode");
     }
     else{
